@@ -1,0 +1,3 @@
+{
+  "extends": "@real-estate-management/config/tsconfig.base.json"
+}
