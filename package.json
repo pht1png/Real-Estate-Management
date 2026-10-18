@@ -28,6 +28,8 @@
   },
   "type": "module",
   "scripts": {
+    "lint": "biome check .",
+    "format": "biome check --write .",
     "dev": "turbo run dev",
     "build": "turbo run build",
     "check-types": "turbo run check-types",
@@ -45,6 +47,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.5.15",
     "@real-estate-management/config": "workspace:*",
     "@types/bun": "catalog:",
     "turbo": "^2.11.7",
