@@ -399,6 +399,7 @@ for (const def of projectDefs) {
     floor: number | null,
     price: number,
     landSqw: number | null,
+    houseNumber: string | null = null,
   ) => {
     const t = typeByCode(typeCode)
     units.push({
@@ -408,6 +409,7 @@ for (const def of projectDefs) {
       phaseId,
       unitTypeId: typeIds[typeCode],
       unitNumber,
+      houseNumber,
       floor,
       facing: def.type === "condominium" && chance(0.25) ? "River view" : pick(facings),
       usableAreaSqm: money(t.areaSqm),
@@ -449,7 +451,9 @@ for (const def of projectDefs) {
     for (let n = 1; n <= 16; n++) {
       const typeCode = [1, 8, 9, 16].includes(n) ? "T3" : "T2"
       const t = typeByCode(typeCode)
-      addUnit(`T-${pad(n, 2)}`, typeCode, phaseIds[0] as string, null, t.price, t.landSqw)
+      // Built houses have their บ้านเลขที่ from the district office; unbuilt ones get it later
+      const houseNumber = def.status === "completed" ? `199/${n + 40}` : null
+      addUnit(`T-${pad(n, 2)}`, typeCode, phaseIds[0] as string, null, t.price, t.landSqw, houseNumber)
     }
   }
 

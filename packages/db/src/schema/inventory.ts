@@ -48,6 +48,8 @@ export const unit = pgTable(
     phaseId: text("phase_id").references(() => projectPhase.id, { onDelete: "set null" }),
     unitTypeId: text("unit_type_id").references(() => unitType.id, { onDelete: "set null" }),
     unitNumber: text("unit_number").notNull(),
+    /** Official house number (บ้านเลขที่) from the district office, e.g. "99/123". Null until assigned. */
+    houseNumber: text("house_number"),
     floor: integer("floor"),
     facing: text("facing"),
     usableAreaSqm: numeric("usable_area_sqm", { precision: 10, scale: 2 }),
