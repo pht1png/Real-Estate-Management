@@ -9,6 +9,8 @@
     "dev": "bun run --hot src/index.ts",
     "start": "bun run dist/index.mjs",
     "env:generate": "varlock codegen",
+    "seed:users": "bun run scripts/seed-users.ts",
+    "seed:data": "bun run scripts/seed-data.ts",
     "auth:generate": "varlock run -- bun x auth@latest generate --config src/services.ts --output ../../packages/db/src/schema/auth.ts --yes"
   },
   "dependencies": {
@@ -18,6 +20,7 @@
     "@real-estate-management/db": "workspace:*",
     "@trpc/server": "catalog:",
     "better-auth": "catalog:",
+    "drizzle-orm": "catalog:",
     "hono": "^4.13.7",
     "varlock": "catalog:",
     "zod": "catalog:"
