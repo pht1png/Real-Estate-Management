@@ -1,34 +1,49 @@
-import { createAccessControl } from "better-auth/plugins/access";
-import { adminAc, defaultStatements, memberAc, ownerAc } from "better-auth/plugins/organization/access";
+import { createAccessControl } from "better-auth/plugins/access"
+import { adminAc, defaultStatements, memberAc, ownerAc } from "better-auth/plugins/organization/access"
 
-const statement = {
+export const statement = {
   ...defaultStatements,
-  project: ["create", "share", "update", "delete"],
-  case: ["create", "update", "delete"],
-  purchasing_order: ["create", "update", "delete"],
-} as const;
+  project: ["read", "create", "share", "update", "delete"],
+  sales: ["read", "create", "update", "delete"],
+  procurement: ["read", "create", "update", "delete"],
+  aftersales: ["read", "create", "update", "delete"],
+} as const
 
-export const ac = createAccessControl(statement);
+export type Permissions = {
+  [K in keyof typeof statement]?: (typeof statement)[K][number][]
+}
+
+export const ac = createAccessControl(statement)
 
 export const member = ac.newRole({
-  project: ["create"],
   ...memberAc.statements,
-});
+  project: ["read", "create"],
+})
 
 export const admin = ac.newRole({
-  project: ["create", "update"],
   ...adminAc.statements,
-});
+  project: ["read", "create", "share", "update"],
+  sales: ["read", "create", "update", "delete"],
+  procurement: ["read", "create", "update", "delete"],
+  aftersales: ["read", "create", "update", "delete"],
+})
 
 export const owner = ac.newRole({
-  project: ["create", "update", "delete"],
   ...ownerAc.statements,
-});
+  project: ["read", "create", "share", "update", "delete"],
+  sales: ["read", "create", "update", "delete"],
+  procurement: ["read", "create", "update", "delete"],
+  aftersales: ["read", "create", "update", "delete"],
+})
 
 export const salesperson = ac.newRole({
-  case: ["create", "update", "delete"],
-});
+  project: ["read"],
+  sales: ["read", "create", "update", "delete"],
+})
 
 export const purchaser = ac.newRole({
-  purchasing_order: ["create", "update", "delete"],
-});
+  project: ["read"],
+  procurement: ["read", "create", "update", "delete"],
+})
+
+export const roles = { owner, admin, member, salesperson, purchaser }
