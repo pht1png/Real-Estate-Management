@@ -3,14 +3,13 @@ import { type Permissions, roleCan } from "@real-estate-management/auth/permissi
 import type { Database } from "@real-estate-management/db"
 import { contact, member } from "@real-estate-management/db/schema/index"
 import { TRPCError } from "@trpc/server"
-import { type AnyColumn, and, eq, sql } from "drizzle-orm"
-import type { BatchItem } from "drizzle-orm/batch"
-import type { PgTable } from "drizzle-orm/pg-core"
+import { and, eq, sql } from "drizzle-orm"
 
 import { areaProcedure } from "../../index"
 import { notFound } from "../../lib/errors"
 
 export { badRequest, conflict, notFound, uniqueViolation, withNumberRetry } from "../../lib/errors"
+export { nextDocumentNumber, runBatch } from "../../lib/db"
 export * from "../../lib/inputs"
 
 // ─── Who can do what ────────────────────────────────────────────────────────
@@ -47,25 +46,6 @@ export const salesOrAccounting = areaProcedure("sales", "accounting")
 // ─── Query helpers ──────────────────────────────────────────────────────────
 
 export const contactName = sql<string>`coalesce(${contact.companyName}, concat_ws(' ', ${contact.firstName}, ${contact.lastName}))`
-
-/** Next document number for the org, e.g. `RS-0036`, from the highest existing one. */
-export async function nextDocumentNumber(
-  db: Database,
-  opts: { table: PgTable; column: AnyColumn; orgColumn: AnyColumn; orgId: string; prefix: string; width?: number },
-) {
-  const start = opts.prefix.length + 2
-  const [row] = await db
-    .select({ n: sql<number | null>`max(substring(${opts.column} from ${sql.raw(String(start))})::int)` })
-    .from(opts.table)
-    .where(and(eq(opts.orgColumn, opts.orgId), sql`${opts.column} ~ ${`^${opts.prefix}-[0-9]+$`}`))
-  return `${opts.prefix}-${String((row?.n ?? 0) + 1).padStart(opts.width ?? 4, "0")}`
-}
-
-/** Runs several writes atomically. neon-http has no interactive transactions, but a batch is one transaction. */
-export async function runBatch(db: Database, items: BatchItem<"pg">[]) {
-  if (!items.length) return
-  await db.batch(items as [BatchItem<"pg">, ...BatchItem<"pg">[]])
-}
 
 export async function assertMember(db: Database, orgId: string, userId: string | null | undefined) {
   if (!userId) return
