@@ -17,3 +17,21 @@ export function useProjectPermissions() {
     canDelete: roleCan(role, { project: ["delete"] }),
   }
 }
+
+/**
+ * Sales & Marketing team: create and edit; cancel/delete also needs manager/admin/owner.
+ * Accounting & Finance team: record payments; voiding also needs manager/admin/owner.
+ * Mirrors the API's checks so buttons only show when the action will work.
+ */
+export function useSalesPermissions() {
+  const access = useAccess()
+  const sales = access?.areas.includes("sales") ?? false
+  const accounting = access?.areas.includes("accounting") ?? false
+  return {
+    canCreate: sales,
+    canUpdate: sales,
+    canDelete: sales && roleCan(access?.role, { sales: ["cancel"] }),
+    canRecordPayment: accounting,
+    canVoid: accounting && roleCan(access?.role, { payment: ["void"] }),
+  }
+}

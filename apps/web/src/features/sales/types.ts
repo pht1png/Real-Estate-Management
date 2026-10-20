@@ -4,18 +4,23 @@ import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server"
 type SalesInputs = inferRouterInputs<AppRouter>["sales"]
 type SalesOutputs = inferRouterOutputs<AppRouter>["sales"]
 
-export type LeadStatus = NonNullable<SalesInputs["leads"]["status"]>
-export type LeadSource = NonNullable<SalesInputs["leads"]["source"]>
-export type ContactType = NonNullable<SalesInputs["contacts"]["type"]>
-export type ReservationStatus = NonNullable<SalesInputs["reservations"]["status"]>
-export type ContractStatus = NonNullable<SalesInputs["contracts"]["status"]>
-export type PaymentMethod = NonNullable<SalesInputs["payments"]["method"]>
+export type LeadStatus = NonNullable<SalesInputs["leads"]["list"]["status"]>
+export type LeadSource = NonNullable<SalesInputs["leads"]["list"]["source"]>
+export type ContactType = NonNullable<SalesInputs["contacts"]["list"]["type"]>
+export type ReservationStatus = NonNullable<SalesInputs["reservations"]["list"]["status"]>
+export type ContractStatus = NonNullable<SalesInputs["contracts"]["list"]["status"]>
+export type PaymentMethod = NonNullable<SalesInputs["payments"]["list"]["method"]>
 
-export type LeadRow = SalesOutputs["leads"]["rows"][number]
-export type ContactRow = SalesOutputs["contacts"]["rows"][number]
-export type ReservationRow = SalesOutputs["reservations"]["rows"][number]
-export type ContractRow = SalesOutputs["contracts"]["rows"][number]
-export type PaymentRow = SalesOutputs["payments"]["rows"][number]
+export type LeadRow = SalesOutputs["leads"]["list"]["rows"][number]
+export type ContactRow = SalesOutputs["contacts"]["list"]["rows"][number]
+export type ReservationRow = SalesOutputs["reservations"]["list"]["rows"][number]
+export type ContractRow = SalesOutputs["contracts"]["list"]["rows"][number]
+export type PaymentRow = SalesOutputs["payments"]["list"]["rows"][number]
+
+export type SalesOptions = SalesOutputs["options"]["form"]
+export type InstallmentRow = SalesOutputs["contracts"]["installments"][number]
+export type CreateContractInput = SalesInputs["contracts"]["createFromReservation"]
+export type UpdateContractInput = SalesInputs["contracts"]["update"]
 
 export const leadStatuses = [
   "new",
