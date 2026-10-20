@@ -12,6 +12,8 @@ export const statement = {
   sales: ["cancel"],
   /** Void a customer payment (team: Accounting & Finance). */
   payment: ["void"],
+  /** Approve purchase requests and orders (the step they may take depends on their team; see procurement rules). */
+  purchase: ["approve"],
 } as const
 
 export type Permissions = {
@@ -31,6 +33,7 @@ export const owner = ac.newRole({
   project: ["read", "create", "update", "delete"],
   sales: ["cancel"],
   payment: ["void"],
+  purchase: ["approve"],
 })
 
 /** Runs the organization (members, invitations, teams) and can update projects. */
@@ -40,6 +43,7 @@ export const admin = ac.newRole({
   project: ["read", "update"],
   sales: ["cancel"],
   payment: ["void"],
+  purchase: ["approve"],
 })
 
 /** Custom role: updates projects, and can cancel sales records and void payments in their teams. */
@@ -47,6 +51,7 @@ export const manager = ac.newRole({
   project: ["read", "update"],
   sales: ["cancel"],
   payment: ["void"],
+  purchase: ["approve"],
 })
 
 export const member = ac.newRole({

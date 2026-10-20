@@ -141,6 +141,20 @@ const owners = withRole("owner")
 const salespeople = inTeam("SM")
 const purchasers = inTeam("PUR")
 const managers = [...new Set([...owners, ...withRole("admin"), ...withRole("manager")])]
+/** Managers in a department team (falls back to the owners, who approve when a team has no manager). */
+const managersIn = (code: string) => {
+  const inDept = new Set(teamRows.filter((t) => t.code === code).map((t) => t.userId))
+  const ids = members.filter((m) => inDept.has(m.userId) && m.role.split(",").includes("manager")).map((m) => m.userId)
+  return ids.length ? ids : owners
+}
+const departmentIds = new Map(
+  (
+    await db
+      .select({ id: s.team.id, code: s.team.code })
+      .from(s.team)
+      .where(eq(s.team.organizationId, ORGANIZATION_ID))
+  ).map((t) => [t.code, t.id]),
+)
 
 // ─── Projects, phases, unit types, units ───────────────────────────────────
 
@@ -950,6 +964,7 @@ const services = [
 ] as const
 
 const purchaseRequests: PgInsertValue<typeof s.purchaseRequest>[] = []
+const activity: PgInsertValue<typeof s.activityLog>[] = []
 const prItems: (PgInsertValue<typeof s.purchaseRequestItem> & { id: string; description: string; quantity: string })[] =
   []
 const purchaseOrders: PgInsertValue<typeof s.purchaseOrder>[] = []
@@ -1005,6 +1020,8 @@ function createPurchaseOrder(opts: {
   const total = subtotal - discount + vat
   const isApproved = opts.status !== "draft" && opts.status !== "pending_approval"
   const approver = pick(owners)
+  // Pending POs wait on the Procurement manager first, then the owner
+  const managerApproved = isApproved || (opts.status === "pending_approval" && chance(0.5))
 
   purchaseOrders.push({
     id: poId,
@@ -1024,6 +1041,9 @@ function createPurchaseOrder(opts: {
     whtRate: money(opts.whtRate),
     total: money(total),
     createdById: pick(purchasers),
+    approvalStep: opts.status === "pending_approval" ? (managerApproved ? "owner" : "manager") : null,
+    managerApprovedById: managerApproved ? pick(managersIn("PUR")) : null,
+    managerApprovedAt: managerApproved ? opts.orderDate : null,
     approvedById: isApproved ? approver : null,
     approvedAt: isApproved ? addDays(opts.orderDate, 1) : null,
   })
@@ -1112,24 +1132,53 @@ prStatuses.forEach((status, i) => {
   const supplierIndex = i % 5
   const createdAt = daysAgo(int(20, 240))
   const prId = uid()
-  const isApproved = status === "approved" || status === "ordered"
+  // Site materials come from Construction; finishes are often specified by Engineering & Design
+  const deptCode = supplierIndex >= 3 && chance(0.5) ? "ENG" : "CON"
+  const requesterId = pick(inTeam(deptCode))
+  const materials = shuffle(catalog.filter((c) => c.supplier === supplierIndex)).slice(0, int(2, 3))
+  const quantities = materials.map((m) => int(m.qty[0], m.qty[1]))
+  const estimatedTotal = materials.reduce((sum, m, j) => sum + m.price * (quantities[j] as number), 0)
+
+  // Two-step approval: the department's manager, then the owner
+  const submittedAt = addDays(createdAt, 1)
+  const managerDecidedAt = addDays(submittedAt, int(1, 2))
+  const ownerDecidedAt = addDays(managerDecidedAt, int(1, 2))
+  const managerApproved = status === "approved" || status === "ordered" || (status === "submitted" && chance(0.5))
+  const ownerApproved = status === "approved" || status === "ordered"
+  const managerId = pick(managersIn(deptCode))
+  const ownerId = pick(owners)
+
   purchaseRequests.push({
     id: prId,
     ...org,
     prNumber: nextNumber("PR"),
     projectId: projectIds[projectCode] as string,
+    departmentId: departmentIds.get(deptCode) ?? null,
     status,
-    requestedById: pick(purchasers),
-    approvedById: isApproved ? pick(owners) : null,
-    approvedAt: isApproved ? addDays(createdAt, int(1, 3)) : null,
+    requestedById: requesterId,
+    justification: `${materials.map((m) => m.description).join(", ")} for ${projectCode}`,
+    estimatedTotal: money(estimatedTotal),
+    approvalStep: status === "submitted" ? (managerApproved ? "owner" : "manager") : null,
+    managerApprovedById: managerApproved ? managerId : null,
+    managerApprovedAt: managerApproved ? managerDecidedAt : null,
+    approvedById: ownerApproved ? ownerId : null,
+    approvedAt: ownerApproved ? ownerDecidedAt : null,
+    rejectionReason: status === "rejected" ? "Over budget, re-quote with an alternative supplier" : null,
     neededBy: dateOnly(addDays(createdAt, int(14, 45))),
-    notes: status === "rejected" ? "Over budget, re-quote with alternative supplier" : null,
   })
 
-  const materials = shuffle(catalog.filter((c) => c.supplier === supplierIndex)).slice(0, int(2, 3))
+  // Timeline, as the workflow would have written it
+  const log = (action: string, userId: string, at: Date) =>
+    activity.push({ ...org, userId, entityType: "purchase_request", entityId: prId, action, createdAt: at })
+  log("created", requesterId, createdAt)
+  if (status !== "draft") log("submitted", requesterId, submittedAt)
+  if (managerApproved) log("manager_approved", managerId, managerDecidedAt)
+  if (status === "rejected") log("rejected", managerId, managerDecidedAt)
+  if (ownerApproved) log("approved", ownerId, ownerDecidedAt)
+
   const lines: PoLine[] = materials.map((m, sortOrder) => {
     const id = uid()
-    const quantity = int(m.qty[0], m.qty[1])
+    const quantity = quantities[sortOrder] as number
     const budget = (budgetLineId[projectCode] as Record<string, string>)[m.budget] as string
     prItems.push({
       id,
@@ -1321,6 +1370,7 @@ await insert(s.mortgageApplication, mortgages)
 await insert(s.supplier, suppliers)
 await insert(s.purchaseRequest, purchaseRequests)
 await insert(s.purchaseRequestItem, prItems)
+await insert(s.activityLog, activity)
 await insert(s.purchaseOrder, purchaseOrders)
 await insert(s.purchaseOrderItem, poItems)
 await insert(s.goodsReceipt, goodsReceipts)

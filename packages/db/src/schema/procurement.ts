@@ -11,6 +11,7 @@ import {
   timestamp,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
+import { team } from "./auth";
 import { budgetLine } from "./budget";
 import { project } from "./projects";
 import {
@@ -24,6 +25,9 @@ import {
   timestamps,
   userRef,
 } from "./shared";
+
+/** Who a submitted PR / pending PO is waiting on: the department's manager first, then the owner. */
+export const approvalStep = pgEnum("approval_step", ["manager", "owner"]);
 
 export const purchaseRequestStatus = pgEnum("purchase_request_status", [
   "draft",
@@ -91,8 +95,19 @@ export const purchaseRequest = pgTable(
       .references(() => project.id),
     status: purchaseRequestStatus("status").default("draft").notNull(),
     requestedById: userRef("requested_by_id"),
+    /** Department (team) that needs it; its manager approves first. */
+    departmentId: text("department_id").references(() => team.id),
+    justification: text("justification"),
+    /** Sum of line estimates, kept in step with the lines on every save. */
+    estimatedTotal: money("estimated_total").default("0").notNull(),
+    approvalStep: approvalStep("approval_step"),
+    managerApprovedById: userRef("manager_approved_by_id"),
+    managerApprovedAt: timestamp("manager_approved_at", { withTimezone: true }),
+    /** Owner's (final) approval. */
     approvedById: userRef("approved_by_id"),
     approvedAt: timestamp("approved_at", { withTimezone: true }),
+    rejectionReason: text("rejection_reason"),
+    cancelReason: text("cancel_reason"),
     neededBy: date("needed_by"),
     notes: text("notes"),
     ...timestamps(),
@@ -154,8 +169,14 @@ export const purchaseOrder = pgTable(
     whtRate: percent("wht_rate").default("0").notNull(),
     total: money("total").default("0").notNull(),
     createdById: userRef("created_by_id"),
+    approvalStep: approvalStep("approval_step"),
+    managerApprovedById: userRef("manager_approved_by_id"),
+    managerApprovedAt: timestamp("manager_approved_at", { withTimezone: true }),
+    /** Owner's (final) approval. */
     approvedById: userRef("approved_by_id"),
     approvedAt: timestamp("approved_at", { withTimezone: true }),
+    rejectionReason: text("rejection_reason"),
+    cancelReason: text("cancel_reason"),
     notes: text("notes"),
     ...timestamps(),
   },
@@ -209,6 +230,9 @@ export const goodsReceipt = pgTable(
     receivedById: userRef("received_by_id"),
     deliveryNoteNumber: text("delivery_note_number"),
     notes: text("notes"),
+    voidedAt: timestamp("voided_at", { withTimezone: true }),
+    voidReason: text("void_reason"),
+    voidedById: userRef("voided_by_id"),
     ...timestamps(),
   },
   (t) => [
