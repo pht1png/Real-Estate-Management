@@ -8,6 +8,10 @@ import { adminAc, defaultStatements, memberAc, ownerAc } from "better-auth/plugi
 export const statement = {
   ...defaultStatements,
   project: ["read", "create", "update", "delete"],
+  /** Cancel reservations and contracts, delete leads, contacts and draft contracts (team: Sales & Marketing). */
+  sales: ["cancel"],
+  /** Void a customer payment (team: Accounting & Finance). */
+  payment: ["void"],
 } as const
 
 export type Permissions = {
@@ -25,6 +29,8 @@ export const owner = ac.newRole({
   ...ownerAc.statements,
   ...departmentTeams,
   project: ["read", "create", "update", "delete"],
+  sales: ["cancel"],
+  payment: ["void"],
 })
 
 /** Runs the organization (members, invitations, teams) and can update projects. */
@@ -32,11 +38,15 @@ export const admin = ac.newRole({
   ...adminAc.statements,
   ...departmentTeams,
   project: ["read", "update"],
+  sales: ["cancel"],
+  payment: ["void"],
 })
 
-/** Custom role: can update projects, nothing else beyond a member. */
+/** Custom role: updates projects, and can cancel sales records and void payments in their teams. */
 export const manager = ac.newRole({
   project: ["read", "update"],
+  sales: ["cancel"],
+  payment: ["void"],
 })
 
 export const member = ac.newRole({

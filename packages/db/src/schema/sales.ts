@@ -140,6 +140,10 @@ export const customerPayment = pgTable(
     bankReference: text("bank_reference"),
     recordedById: userRef("recorded_by_id"),
     notes: text("notes"),
+    /** Voided payments stay for audit but no longer count towards installments or totals. */
+    voidedAt: timestamp("voided_at", { withTimezone: true }),
+    voidReason: text("void_reason"),
+    voidedById: userRef("voided_by_id"),
     ...timestamps(),
   },
   (t) => [
