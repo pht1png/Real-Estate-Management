@@ -96,6 +96,15 @@ const summarize = (byStatus: Record<string, number> = {}) => {
 }
 
 export const projectsRouter = router({
+  /** Every project (id, code, name) for pickers and filters. */
+  options: projectProcedure("read").query(({ ctx }) =>
+    ctx.db
+      .select({ id: project.id, code: project.code, name: project.name })
+      .from(project)
+      .where(eq(project.organizationId, ctx.orgId))
+      .orderBy(asc(project.name)),
+  ),
+
   list: projectProcedure("read")
     .input(
       listInput.extend({

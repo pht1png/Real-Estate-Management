@@ -12,11 +12,14 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Fragment } from "react"
 
+import { useBreadcrumbLabels } from "@/components/breadcrumb-label"
 import { getBreadcrumbs } from "@/lib/navigation"
 
 /** Breadcrumbs for the current URL. Every crumb but the last links back to that level. */
 export function PageBreadcrumbs() {
-  const crumbs = getBreadcrumbs(usePathname())
+  const labels = useBreadcrumbLabels()
+  // Pages can rename their crumb (a project id becomes the project name)
+  const crumbs = getBreadcrumbs(usePathname()).map((crumb) => ({ ...crumb, label: labels[crumb.href] ?? crumb.label }))
   if (!crumbs.length) return null
 
   return (
