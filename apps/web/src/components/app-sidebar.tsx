@@ -13,7 +13,8 @@ import {
 } from "@real-estate-management/ui/components/sidebar"
 import { Building2Icon } from "lucide-react"
 import type { User } from "@/lib/auth-client"
-import { getNavForRole } from "@/lib/navigation"
+import { getNavForAreas } from "@/lib/navigation"
+import type { Area } from "@real-estate-management/auth/access"
 
 // This is sample data.
 const data = {
@@ -38,17 +39,17 @@ const data = {
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   user: User
-  memberRole: string | null
+  areas: Area[]
 }
 
-export function AppSidebar({ user, memberRole, ...props }: AppSidebarProps) {
+export function AppSidebar({ user, areas, ...props }: AppSidebarProps) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <OrganizationSwitcher />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={getNavForRole(memberRole)} />
+        <NavMain items={getNavForAreas(areas)} />
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
