@@ -12,10 +12,10 @@ import {
   Stacked,
   StatCards,
   Toolbar,
-} from "@/features/sales/components/list-layout"
-import { StatusBadge } from "@/features/sales/components/status-badge"
-import { useListState } from "@/features/sales/hooks/use-list-state"
-import { daysUntil, formatDate, formatMoney, labelize } from "@/features/sales/lib/format"
+} from "@/components/list/list-layout"
+import { StatusBadge } from "@/components/list/status-badge"
+import { useListState } from "@/hooks/use-list-state"
+import { daysUntil, formatDate, formatMoney, labelize } from "@/lib/format"
 import { type ReservationRow, type ReservationStatus, reservationStatuses } from "@/features/sales/types"
 import { trpc } from "@/utils/trpc"
 

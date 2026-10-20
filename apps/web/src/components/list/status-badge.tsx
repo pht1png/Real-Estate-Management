@@ -1,6 +1,6 @@
 import { Badge } from "@real-estate-management/ui/components/badge"
 
-import { labelize } from "@/features/sales/lib/format"
+import { labelize } from "@/lib/format"
 
 type Variant = "default" | "secondary" | "outline" | "destructive"
 
@@ -20,6 +20,13 @@ const variants: Record<string, Variant> = {
   // contracts
   draft: "outline",
   transferred: "secondary",
+  // requisitions
+  submitted: "secondary",
+  approved: "default",
+  rejected: "destructive",
+  // vendors and departments
+  inactive: "outline",
+  archived: "outline",
 }
 
 export function StatusBadge({ status }: { status: string }) {

@@ -13,10 +13,10 @@ import {
   Stacked,
   StatCards,
   Toolbar,
-} from "@/features/sales/components/list-layout"
-import { StatusBadge } from "@/features/sales/components/status-badge"
-import { useListState } from "@/features/sales/hooks/use-list-state"
-import { formatDate, formatMoney, formatMoneyCompact, labelize } from "@/features/sales/lib/format"
+} from "@/components/list/list-layout"
+import { StatusBadge } from "@/components/list/status-badge"
+import { useListState } from "@/hooks/use-list-state"
+import { formatDate, formatMoney, formatMoneyCompact, labelize } from "@/lib/format"
 import { type ContractRow, type ContractStatus, contractStatuses } from "@/features/sales/types"
 import { trpc } from "@/utils/trpc"
 

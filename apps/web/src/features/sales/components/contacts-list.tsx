@@ -12,8 +12,8 @@ import {
   SearchInput,
   Stacked,
   Toolbar,
-} from "@/features/sales/components/list-layout"
-import { useListState } from "@/features/sales/hooks/use-list-state"
+} from "@/components/list/list-layout"
+import { useListState } from "@/hooks/use-list-state"
 import type { ContactRow, ContactType } from "@/features/sales/types"
 import { trpc } from "@/utils/trpc"
 

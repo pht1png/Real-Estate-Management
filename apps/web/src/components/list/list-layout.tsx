@@ -20,17 +20,76 @@ import {
   TableRow,
 } from "@real-estate-management/ui/components/table"
 import { cn } from "@real-estate-management/ui/lib/utils"
-import { ChevronLeftIcon, ChevronRightIcon, SearchIcon } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@real-estate-management/ui/components/dropdown-menu"
+import { ChevronLeftIcon, ChevronRightIcon, MoreHorizontalIcon, PlusIcon, SearchIcon } from "lucide-react"
 
-import { labelize } from "@/features/sales/lib/format"
+import { labelize } from "@/lib/format"
 
-export function PageHeader({ title, description }: { title: string; description: string }) {
+export function PageHeader({
+  title,
+  description,
+  action,
+}: {
+  title: string
+  description: string
+  action?: React.ReactNode
+}) {
   return (
-    <div className="flex flex-col gap-1">
-      <h1 className="text-lg font-semibold">{title}</h1>
-      <p className="text-xs text-muted-foreground">{description}</p>
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-1">
+        <h1 className="text-lg font-semibold">{title}</h1>
+        <p className="text-xs text-muted-foreground">{description}</p>
+      </div>
+      {action}
     </div>
   )
+}
+
+/** "New lead" style button for the page header. */
+export function HeaderButton({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <Button onClick={onClick} className="self-start">
+      <PlusIcon data-icon="inline-start" />
+      {label}
+    </Button>
+  )
+}
+
+export type RowAction = { label: string; onClick: () => void; destructive?: boolean; hidden?: boolean }
+
+/** "⋯" menu at the end of a row. Renders nothing when every action is hidden. */
+export function RowActions({ actions }: { actions: RowAction[] }) {
+  const visible = actions.filter((action) => !action.hidden)
+  if (!visible.length) return null
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
+        <MoreHorizontalIcon />
+        <span className="sr-only">Actions</span>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-40">
+        {visible.map((action) => (
+          <DropdownMenuItem
+            key={action.label}
+            variant={action.destructive ? "destructive" : "default"}
+            onClick={action.onClick}
+          >
+            {action.label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+/** Column definition for the row actions menu. */
+export function actionsColumn<T>(actions: (row: T) => RowAction[]): Column<T> {
+  return { header: "", cell: (row) => <RowActions actions={actions(row)} />, className: "w-10 text-right" }
 }
 
 export type Stat = { label: string; value: React.ReactNode; hint?: string; active?: boolean; onClick?: () => void }
@@ -82,15 +141,18 @@ export function FilterSelect<T extends string>({
   onChange,
   options,
   allLabel,
+  labelFor = labelize,
 }: {
   value: T | null
   onChange: (value: T | null) => void
   options: readonly T[]
   allLabel: string
+  /** How to show an option; defaults to "bank_transfer" → "Bank transfer". */
+  labelFor?: (value: T) => string
 }) {
   const items = [
     { value: ALL, label: allLabel },
-    ...options.map((option) => ({ value: option, label: labelize(option) })),
+    ...options.map((option) => ({ value: option, label: labelFor(option) })),
   ]
   return (
     <Select items={items} value={value ?? ALL} onValueChange={(next) => onChange(next === ALL ? null : (next as T))}>
@@ -142,7 +204,6 @@ export function DataTable<T extends { id: string }>({
         <TableBody>
           {!rows &&
             Array.from({ length: 8 }, (_, i) => (
-              // biome-ignore lint/suspicious/noArrayIndexKey: static placeholder rows
               <TableRow key={i}>
                 {columns.map((column) => (
                   <TableCell key={column.header}>

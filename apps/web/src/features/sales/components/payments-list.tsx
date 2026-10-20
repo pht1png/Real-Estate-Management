@@ -12,9 +12,9 @@ import {
   Stacked,
   StatCards,
   Toolbar,
-} from "@/features/sales/components/list-layout"
-import { useListState } from "@/features/sales/hooks/use-list-state"
-import { formatDate, formatMoney, formatMoneyCompact, labelize } from "@/features/sales/lib/format"
+} from "@/components/list/list-layout"
+import { useListState } from "@/hooks/use-list-state"
+import { formatDate, formatMoney, formatMoneyCompact, labelize } from "@/lib/format"
 import { type PaymentMethod, type PaymentRow, paymentMethods } from "@/features/sales/types"
 import { trpc } from "@/utils/trpc"
 
