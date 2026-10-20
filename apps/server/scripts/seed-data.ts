@@ -105,7 +105,6 @@ if (RESET) {
     s.budgetLine,
     s.unit,
     s.unitType,
-    s.projectMember,
     s.projectPhase,
     s.project,
   ]
@@ -335,7 +334,6 @@ const projects: PgInsertValue<typeof s.project>[] = []
 const phases: PgInsertValue<typeof s.projectPhase>[] = []
 const unitTypes: (PgInsertValue<typeof s.unitType> & { id: string })[] = []
 const units: UnitRow[] = []
-const projectMembers: PgInsertValue<typeof s.projectMember>[] = []
 const projectIds: Record<string, string> = {}
 const unitTypeIdsByProject: Record<string, string[]> = {}
 
@@ -467,21 +465,9 @@ for (const def of projectDefs) {
     }
   }
 
-  // Owners manage every project; salespeople and purchasers are spread across them
-  for (const userId of owners) projectMembers.push({ ...org, projectId, userId, role: "manager" })
 }
 
 const projectCodes = projectDefs.map((d) => d.code)
-salespeople.forEach((userId, i) => {
-  const code = projectCodes[i % projectCodes.length] as string
-  if (!owners.includes(userId))
-    projectMembers.push({ ...org, projectId: projectIds[code] as string, userId, role: "sales" })
-})
-purchasers.forEach((userId, i) => {
-  const code = projectCodes[i % projectCodes.length] as string
-  if (!owners.includes(userId))
-    projectMembers.push({ ...org, projectId: projectIds[code] as string, userId, role: "procurement" })
-})
 
 // ─── Budget ─────────────────────────────────────────────────────────────────
 
@@ -1321,7 +1307,6 @@ const defects: PgInsertValue<typeof s.defectTicket>[] = completedHandovers.flatM
 
 await insert(s.project, projects)
 await insert(s.projectPhase, phases)
-await insert(s.projectMember, projectMembers)
 await insert(s.unitType, unitTypes)
 await insert(s.unit, units)
 await insert(s.budgetLine, budgetLines)

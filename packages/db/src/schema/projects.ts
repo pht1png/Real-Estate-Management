@@ -1,5 +1,4 @@
 import { date, index, integer, numeric, pgEnum, pgTable, text, uniqueIndex } from "drizzle-orm/pg-core";
-import { user } from "./auth";
 import { address, id, organizationId, timestamps } from "./shared";
 
 export const projectType = pgEnum("project_type", [
@@ -20,14 +19,6 @@ export const projectStatus = pgEnum("project_status", [
   "cancelled",
 ]);
 
-export const projectMemberRole = pgEnum("project_member_role", [
-  "manager",
-  "sales",
-  "engineer",
-  "procurement",
-  "finance",
-  "viewer",
-]);
 
 export const project = pgTable(
   "project",
@@ -74,23 +65,3 @@ export const projectPhase = pgTable(
   (t) => [index("project_phase_project_idx").on(t.projectId)],
 );
 
-/** Which org members work on which project, and in what role. */
-export const projectMember = pgTable(
-  "project_member",
-  {
-    id: id(),
-    organizationId: organizationId(),
-    projectId: text("project_id")
-      .notNull()
-      .references(() => project.id, { onDelete: "cascade" }),
-    userId: text("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    role: projectMemberRole("role").default("viewer").notNull(),
-    ...timestamps(),
-  },
-  (t) => [
-    uniqueIndex("project_member_project_user_uidx").on(t.projectId, t.userId),
-    index("project_member_user_idx").on(t.userId),
-  ],
-);

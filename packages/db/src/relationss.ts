@@ -22,7 +22,6 @@ export const projectsRelations = defineRelationsPart(schema, (r) => ({
   project: {
     organization: r.one.organization({ from: r.project.organizationId, to: r.organization.id, optional: false }),
     phases: r.many.projectPhase({ from: r.project.id, to: r.projectPhase.projectId }),
-    members: r.many.projectMember({ from: r.project.id, to: r.projectMember.projectId }),
     unitTypes: r.many.unitType({ from: r.project.id, to: r.unitType.projectId }),
     units: r.many.unit({ from: r.project.id, to: r.unit.projectId }),
     leads: r.many.lead({ from: r.project.id, to: r.lead.projectId }),
@@ -41,10 +40,6 @@ export const projectsRelations = defineRelationsPart(schema, (r) => ({
     project: r.one.project({ from: r.projectPhase.projectId, to: r.project.id, optional: false }),
     units: r.many.unit({ from: r.projectPhase.id, to: r.unit.phaseId }),
     budgetLines: r.many.budgetLine({ from: r.projectPhase.id, to: r.budgetLine.phaseId }),
-  },
-  projectMember: {
-    project: r.one.project({ from: r.projectMember.projectId, to: r.project.id, optional: false }),
-    user: r.one.user({ from: r.projectMember.userId, to: r.user.id, optional: false }),
   },
 }))
 
