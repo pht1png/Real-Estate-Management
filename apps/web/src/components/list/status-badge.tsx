@@ -20,10 +20,17 @@ const variants: Record<string, Variant> = {
   // contracts
   draft: "outline",
   transferred: "secondary",
-  // requisitions
+  // purchase requests and orders
   submitted: "secondary",
   approved: "default",
   rejected: "destructive",
+  ordered: "secondary",
+  pending_approval: "secondary",
+  sent: "default",
+  partially_received: "secondary",
+  received: "secondary",
+  closed: "outline",
+  voided: "destructive",
   // vendors and departments
   inactive: "outline",
   archived: "outline",

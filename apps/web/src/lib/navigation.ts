@@ -20,7 +20,12 @@ export type NavItem = {
   isActive?: boolean
   /** The area of the app this tab belongs to; department teams unlock areas (see packages/auth/src/access.ts). */
   area: Area
-  items: { title: string; url: UrlObject }[]
+  items: {
+    title: string
+    url: UrlObject
+    /** Only for people who can approve purchases; shows how many are waiting on them. */
+    approvals?: true
+  }[]
 }
 
 // One tab per department (title = department name, URL = its slug), plus Projects for everyone.
@@ -93,6 +98,7 @@ export const navMain: NavItem[] = [
       { title: "Purchase orders", url: { pathname: "/procurement/purchase-orders" } },
       { title: "Goods receipts", url: { pathname: "/procurement/goods-receipts" } },
       { title: "Suppliers", url: { pathname: "/procurement/suppliers" } },
+      { title: "Approvals", url: { pathname: "/procurement/approvals" }, approvals: true },
     ],
   },
   {
