@@ -18,11 +18,13 @@ import {
 import { and, count, desc, eq, gte, ilike, inArray, lt, or, type SQL, sql, sum } from "drizzle-orm"
 import { z } from "zod"
 
-import { permissionProcedure, router } from "../index"
+import { areaProcedure, router } from "../index"
 
 const PAGE_SIZE = 20
 
-const readSales = permissionProcedure({ sales: ["read"] })
+// Sales data is for the Sales & Marketing team; payments belong to Accounting & Finance
+const readSales = areaProcedure("sales")
+const readPayments = areaProcedure("accounting")
 
 const listInput = z.object({
   search: z.string().trim().max(100).optional(),
@@ -294,7 +296,7 @@ export const salesRouter = router({
       }
     }),
 
-  payments: readSales
+  payments: readPayments
     .input(listInput.extend({ method: z.enum(paymentMethod.enumValues).optional() }))
     .query(async ({ ctx, input }) => {
       const term = searchTerm(input.search)

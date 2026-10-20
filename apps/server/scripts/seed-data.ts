@@ -128,10 +128,20 @@ const withRole = (role: string) => {
   const ids = members.filter((m) => m.role.split(",").includes(role)).map((m) => m.userId)
   return ids.length ? ids : everyone
 }
+// People work in department teams: Sales & Marketing sells, Procurement buys
+const teamRows = await db
+  .select({ userId: s.teamMember.userId, code: s.team.code })
+  .from(s.teamMember)
+  .innerJoin(s.team, eq(s.team.id, s.teamMember.teamId))
+  .where(eq(s.team.organizationId, ORGANIZATION_ID))
+const inTeam = (code: string) => {
+  const ids = [...new Set(teamRows.filter((t) => t.code === code).map((t) => t.userId))]
+  return ids.length ? ids : everyone
+}
 const owners = withRole("owner")
-const salespeople = withRole("salesperson")
-const purchasers = withRole("purchaser")
-const managers = [...new Set([...owners, ...withRole("admin")])]
+const salespeople = inTeam("SM")
+const purchasers = inTeam("PUR")
+const managers = [...new Set([...owners, ...withRole("admin"), ...withRole("manager")])]
 
 // ─── Projects, phases, unit types, units ───────────────────────────────────
 
