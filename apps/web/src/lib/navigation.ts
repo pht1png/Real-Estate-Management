@@ -163,8 +163,8 @@ const humanize = (segment: string) => {
   return words.charAt(0).toUpperCase() + words.slice(1)
 }
 
-/** A tab's own URL often has no page (e.g. /accounting), so its crumb links to the tab's first page. */
-const tabHref = (tab: NavItem) => tab.items[0]?.url.pathname ?? tab.url
+/** A tab's crumb links to the tab's overview page (its URL), which lists the tab's pages. */
+const tabHref = (tab: NavItem) => tab.url
 
 /**
  * Breadcrumbs for a pathname, named like the sidebar: /sales/leads → Sales & Marketing › Leads.

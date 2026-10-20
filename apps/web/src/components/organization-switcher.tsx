@@ -17,9 +17,7 @@ import {
   SidebarMenuSkeleton,
   useSidebar,
 } from "@real-estate-management/ui/components/sidebar"
-import { useQueryClient } from "@tanstack/react-query"
 import { Building2Icon, CheckIcon, ChevronsUpDownIcon, PlusIcon } from "lucide-react"
-import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { type Organization, authClient } from "@/lib/auth-client"
 import Link from "next/link"
